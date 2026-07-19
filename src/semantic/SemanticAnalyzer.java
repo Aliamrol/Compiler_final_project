@@ -164,6 +164,99 @@ public class SemanticAnalyzer extends AUJavaBaseVisitor<Type> {
         return Type.BOOLEAN;
     }
 
+
+    @Override
+    public Type visitAddSubExpr(AUJavaParser.AddSubExprContext ctx) {
+        Type left = visit(ctx.expression(0));
+        Type right = visit(ctx.expression(1));
+        
+        if (left != Type.INT || right != Type.INT) {
+            reportError(ctx.getStart(), "Arithmetic operations (+, -) require integer operands.");
+        }
+        return Type.INT;
+    }
+
+    @Override
+    public Type visitMulDivExpr(AUJavaParser.MulDivExprContext ctx) {
+        Type left = visit(ctx.expression(0));
+        Type right = visit(ctx.expression(1));
+        
+        if (left != Type.INT || right != Type.INT) {
+            reportError(ctx.getStart(), "Arithmetic operations (*, /) require integer operands.");
+        }
+        return Type.INT;
+    }
+
+    @Override
+    public Type visitRelationalExpr(AUJavaParser.RelationalExprContext ctx) {
+        Type left = visit(ctx.expression(0));
+        Type right = visit(ctx.expression(1));
+        
+        if (left != Type.INT || right != Type.INT) {
+            reportError(ctx.getStart(), "Relational operations (<, >, <=, >=) require integer operands.");
+        }
+        return Type.BOOLEAN;
+    }
+
+    @Override
+    public Type visitEqualityExpr(AUJavaParser.EqualityExprContext ctx) {
+        Type left = visit(ctx.expression(0));
+        Type right = visit(ctx.expression(1));
+        
+        if (left != null && right != null && left != right) {
+            reportError(ctx.getStart(), "Equality operations (==, !=) require operands of the same type.");
+        }
+        return Type.BOOLEAN;
+    }
+
+    @Override
+    public Type visitAndExpr(AUJavaParser.AndExprContext ctx) {
+        Type left = visit(ctx.expression(0));
+        Type right = visit(ctx.expression(1));
+        
+        if (left != Type.BOOLEAN || right != Type.BOOLEAN) {
+            reportError(ctx.getStart(), "Logical operation (&&) requires boolean operands.");
+        }
+        return Type.BOOLEAN;
+    }
+
+    @Override
+    public Type visitOrExpr(AUJavaParser.OrExprContext ctx) {
+        Type left = visit(ctx.expression(0));
+        Type right = visit(ctx.expression(1));
+        
+        if (left != Type.BOOLEAN || right != Type.BOOLEAN) {
+            reportError(ctx.getStart(), "Logical operation (||) requires boolean operands.");
+        }
+        return Type.BOOLEAN;
+    }
+
+    @Override
+    public Type visitNotExpr(AUJavaParser.NotExprContext ctx) {
+        Type exprType = visit(ctx.expression());
+        
+        if (exprType != Type.BOOLEAN) {
+            reportError(ctx.getStart(), "Logical NOT (!) requires a boolean operand.");
+        }
+        return Type.BOOLEAN;
+    }
+
+    @Override
+    public Type visitParenExpr(AUJavaParser.ParenExprContext ctx) {
+        return visit(ctx.expression());
+    }
+
+
+    @Override
+    public Type visitPrintStatement(AUJavaParser.PrintStatementContext ctx) {
+        Type exprType = visit(ctx.expression());
+        
+        if (exprType != Type.INT && exprType != Type.BOOLEAN) {
+            reportError(ctx.getStart(), "System.out.println only accepts 'int' or 'boolean' arguments.");
+        }
+        return Type.VOID;
+    }
+
     private Type mapStringToType(String typeStr) {
         switch (typeStr) {
             case "int": return Type.INT;
